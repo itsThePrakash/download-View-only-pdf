@@ -1,5 +1,4 @@
-Perfect 👍
-Here’s a **complete GitHub-ready README.md** for your project. I’ve written it step-by-step in a way that anyone can follow easily, starting from opening a Google Drive file to running both scripts.
+
 
 ---
 
@@ -175,13 +174,7 @@ The PDF will automatically **download to your computer** 🎉
 
 ---
 
-## 📜 License
 
-MIT License © 2025
 
-```
 
----
-
-Do you want me to also add **screenshots/demo GIF** sections in this README (like “before running script” → “after download”) so it looks polished for GitHub?
 ```
