@@ -1,52 +1,59 @@
 
+# 📄 Google Drive Document to PDF Saver
 
----
+This repository contains two JavaScript snippets that let you download Google Drive documents (previewed as `blob:` images) into a **single high-resolution PDF file**.
 
-````markdown
-# 📄 Google Drive Document → PDF Saver  
+-----
 
-This repository contains two JavaScript snippets that let you download Google Drive documents (previewed as `blob:` images) into a **single high-resolution PDF file**.  
+## 🤔 Why Use This Script?
 
----
+ "Print to PDF" (`Ctrl+P`) feature,  This script downloads the **original, full-resolution images** 
+
+
+-----
 
 ## 🚀 Features
-- ✅ Auto-scrolls through the document to **load all pages**  
-- ✅ Extracts `blob:` images from the Google Drive preview  
-- ✅ Converts them into a **PDF with correct orientation** (portrait/landscape)  
-- ✅ Automatically names the PDF using the document’s title  
 
----
+  - ✅ Auto-scrolls through the document to **load all pages**.
+  - ✅ Extracts `blob:` image URLs from the Google Drive preview.
+  - ✅ Stitches images into a **single PDF** with correct page orientation (portrait/landscape).
+  - ✅ Automatically names the PDF using the document’s title.
 
-## 🛠 Step-by-Step Usage  
+-----
 
-Follow these steps carefully to generate your PDF:  
+## 🛠️ How to Use
 
-### **Step 1 — Open the File**
-1. Go to your **Google Drive file**.  
-2. Right-click → **Open in new window**.  
-   - (This ensures the preview is shown properly.)  
+Follow these steps carefully in your browser (like Chrome or Firefox) to generate the PDF.
 
----
+### **Step 1: Open the Document in a New Window**
 
-### **Step 2 — Open Developer Tools**
-1. Press **F12** (Windows/Linux) or **Option + ⌘ + I** (Mac).  
-2. Go to the **Console** tab.  
-3. If Chrome asks to *“allow pasting”*, type this and press **Enter**:  
-   ```js
-   allow pasting
-````
+1.  Navigate to the file in your Google Drive.
+2.  Right-click on the file and select **Open in new window**. This is crucial for the script to access the correct preview elements.
 
----
+### **Step 2: Open Developer Tools**
 
-### **Step 3 — Run the Auto-Scroll Script**
+1.  With the document preview open in the new window, open your browser's Developer Tools.
+      - **Windows/Linux**: Press `F12`
+      - **Mac**: Press `Option + ⌘ + I`
+2.  Click on the **"Console"** tab.
+3.  If you see a warning, you might need to type `allow pasting` and press **Enter** to enable pasting code.
 
-Paste the following code into the console and press **Enter**:
+### **Step 3: Run the Auto-Scroll Script**
 
-```js
+This script scrolls through the entire document to ensure all pages are loaded into the browser's memory.
+
+1.  Copy the code below.
+2.  Paste it into the console and press **Enter**.
+3.  Wait for the page to scroll to the bottom and for an alert box that says: **"Auto-scroll complete. Now run the PDF download script."**
+
+\<details\>
+\<summary\>Click to view Auto-Scroll Script\</summary\>
+
+```javascript
 /*
-  Step 1: Auto-Scroll Script
-  - This script forces all pages of the document to load.
-*/
+ * Step 1: Auto-Scroll Script
+ * This script forces all pages of the document to load.
+ */
 (function() {
     let scrollableElement = null;
     // Find the main scrollable container
@@ -77,104 +84,119 @@ Paste the following code into the console and press **Enter**:
 })();
 ```
 
-Wait until the script finishes and shows:
+\</details\>
 
-```
-✅ All pages are loaded.
-```
+### **Step 4: Run the PDF Generation Script**
 
----
+After all pages are loaded, this script will find all the page images, combine them into a PDF, and download it.
 
-### **Step 4 — Run the PDF Download Script**
+1.  Copy the code below.
+2.  Paste it into the console and press **Enter**.
+3.  The PDF will be generated and should start downloading automatically. 🎉
 
-Now paste the following script into the console and press **Enter**:
+\<details\>
+\<summary\>Click to view PDF Generation Script\</summary\>
 
-```js
-(function () {
-console.log("Loading script ...");
-let script = document.createElement("script");
-script.onload = function () {
-const { jsPDF } = window.jspdf;
-let pdf = null;
-let imgElements = document.getElementsByTagName("img");
-let validImgs = [];
-let initPDF = true;
+```javascript
+/*
+ * Step 2: PDF Generation Script
+ * This script finds all loaded blob images, converts them to a PDF, and downloads it.
+ */
+(function() {
+    console.log("Loading jsPDF library...");
+    let script = document.createElement("script");
+    script.onload = function() {
+        const {
+            jsPDF
+        } = window.jspdf;
+        let pdf = null;
+        let imgElements = document.getElementsByTagName("img");
+        let validImgs = [];
 
-console.log("Scanning content ...");
-for (let i = 0; i < imgElements.length; i++) {
-    let img = imgElements[i];
-    let checkURLString = "blob:https://drive.google.com/";
-    if (img.src.substring(0, checkURLString.length) !== checkURLString) continue;
-    validImgs.push(img);
-}
+        console.log("Scanning document for page images...");
+        // Filter for the blob images used in the Google Drive preview
+        for (let i = 0; i < imgElements.length; i++) {
+            let img = imgElements[i];
+            if (img.src.startsWith("blob:https://drive.google.com/")) {
+                validImgs.push(img);
+            }
+        }
 
-console.log(`${validImgs.length} content found!`);
-console.log("Generating PDF file ...");
+        if (validImgs.length === 0) {
+            console.error("No document images found. Did the auto-scroll script run successfully?");
+            alert("Error: No document images found. Please ensure all pages were loaded.");
+            return;
+        }
 
-for (let i = 0; i < validImgs.length; i++) {
-    let img = validImgs[i];
-    let canvasElement = document.createElement("canvas");
-    let con = canvasElement.getContext("2d");
-    canvasElement.width = img.naturalWidth;
-    canvasElement.height = img.naturalHeight;
-    con.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
-    let imgData = canvasElement.toDataURL();
+        console.log(`✅ Found ${validImgs.length} pages!`);
+        console.log("Generating PDF file... Please wait.");
 
-    let orientation = img.naturalWidth > img.naturalHeight ? "l" : "p";
-    let pageWidth = img.naturalWidth;
-    let pageHeight = img.naturalHeight;
+        for (let i = 0; i < validImgs.length; i++) {
+            let img = validImgs[i];
+            let canvasElement = document.createElement("canvas");
+            let ctx = canvasElement.getContext("2d");
+            canvasElement.width = img.naturalWidth;
+            canvasElement.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+            let imgData = canvasElement.toDataURL("image/jpeg", 1.0);
 
-    if (initPDF) {
-        pdf = new jsPDF({ orientation, unit: "px", format: [pageWidth, pageHeight] });
-        initPDF = false;
-    }
+            let orientation = img.naturalWidth > img.naturalHeight ? "l" : "p";
+            let pageWidth = img.naturalWidth;
+            let pageHeight = img.naturalHeight;
 
-    if (!initPDF) {
-        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight, "", "SLOW");
-        if (i !== validImgs.length - 1) pdf.addPage();
-    }
+            if (i === 0) {
+                // Initialize PDF with the dimensions of the first page
+                pdf = new jsPDF({
+                    orientation,
+                    unit: "px",
+                    format: [pageWidth, pageHeight]
+                });
+            } else {
+                // For subsequent pages, add a new page with its specific dimensions
+                pdf.addPage([pageWidth, pageHeight], orientation);
+            }
 
-    const percentages = Math.floor(((i + 1) / validImgs.length) * 100);
-    console.log(`Processing content ${percentages}%`);
-}
+            // Add the image to the current page
+            pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight, "", "FAST");
 
-let title = document.querySelector('meta[itemprop="name"]').content;
-if (title.split(".").pop() !== "pdf") title += ".pdf";
+            const percentage = Math.floor(((i + 1) / validImgs.length) * 100);
+            console.log(`Processing page ${i + 1} of ${validImgs.length} (${percentage}%)`);
+        }
 
-console.log("Downloading PDF file ...");
-pdf.save(title, { returnPromise: true }).then(() => {
-    document.body.removeChild(script);
-    console.log("PDF downloaded!");
-});
-};
+        let title = document.querySelector('meta[itemprop="name"]').content || "document.pdf";
+        if (!title.toLowerCase().endsWith('.pdf')) {
+            title += ".pdf";
+        }
 
-let scriptURL = "https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js";
-let trustedURL;
-if (window.trustedTypes && trustedTypes.createPolicy) {
-    const policy = trustedTypes.createPolicy("myPolicy", { createScriptURL: (input) => input });
-    trustedURL = policy.createScriptURL(scriptURL);
-} else {
-    trustedURL = scriptURL;
-}
-script.src = trustedURL;
-document.body.appendChild(script);
+        console.log("Downloading PDF file...");
+        pdf.save(title, {
+            returnPromise: true
+        }).then(() => {
+            document.body.removeChild(script);
+            console.log("✅ PDF downloaded successfully!");
+            alert(`Your file "${title}" has been downloaded.`);
+        });
+    };
+
+    script.src = "https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js";
+    document.body.appendChild(script);
 })();
 ```
 
-The PDF will automatically **download to your computer** 🎉
+\</details\>
 
----
+-----
 
-## ⚠️ Notes
+## ⚠️ Limitations & Important Notes
 
-* Works best for Google Drive **PDF previews**.
-* Large documents → large file size.
-* The script captures **images only** (no selectable text).
-* Alternative: you can always use `Ctrl+P → Save as PDF`, but this method keeps **original image quality**.
+  - This script is designed for the **Google Drive document previewer** and may not work on other websites.
+  - The final PDF will contain **images**, not selectable text. This is because the script is essentially taking screenshots of each page.
+  - For **very large documents**, the browser may become slow or run out of memory. The final PDF file size can also be quite large.
+  - You must keep the browser tab **in focus** while the scripts are running.
 
----
+-----
 
+## 🤝 Contributing
 
+Contributions, issues, and feature requests are welcome\!
 
-
-```
